@@ -1,3 +1,23 @@
+/**
+ * Paralelização de Decision Tree Paralelo
+ * C++
+ * Computação Paralela
+ * @authors - Camila Lacerda Grandini, Joana Moreira Woldaynsky, Lucas de Paula e Guilherme Vedovelo
+ * 2023 - 2o. Semestre
+ * Código da Árvore de Decisão disponível em: https://github.com/bowbowbow/DecisionTree
+
+ 1) Tempo de Execução Sequencial: 11.056s
+ 2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 10.299s
+
+ Ganho de 2 para 1 (Speedup): 1,073
+
+ 3) Tempo de Execução Paralela com 1 thread: 10.829s
+ 4) Tempo de Execução Paralela com 2 threads: 11.428s
+ 5) Tempo de Execução Paralela com 4 threads: 12.375s
+ 6) Tempo de Execução Paralela com 8 threads: 20.703s
+
+*/
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -89,71 +109,54 @@ class DecisionTree {
 			return -1;
 		}
 
-void run(Table table, int nodeIndex) {
-    if (isLeafNode(table) == true) {
-        #pragma omp critical
-        {
-            tree[nodeIndex].isLeaf = true;
-            tree[nodeIndex].label = table.data.back().back();
-        }
-        return;
-    }
+		void run(Table table, int nodeIndex) {
+			if(isLeafNode(table) == true) {
+				tree[nodeIndex].isLeaf = true;
+				tree[nodeIndex].label = table.data.back().back();
+				return;
+			}
 
-    int selectedAttrIndex = getSelectedAttribute(table);
+			int selectedAttrIndex = getSelectedAttribute(table);
 
-    map<string, vector<int>> attrValueMap;
-    for (int i = 0; i < table.data.size(); i++) {
-        attrValueMap[table.data[i][selectedAttrIndex]].push_back(i);
-    }
+			map<string, vector<int> > attrValueMap;
+			for(int i=0;i<table.data.size();i++) {
+				attrValueMap[table.data[i][selectedAttrIndex]].push_back(i);
+			}
 
-    tree[nodeIndex].criteriaAttrIndex = selectedAttrIndex;
+			tree[nodeIndex].criteriaAttrIndex = selectedAttrIndex;
 
-    pair<string, int> majority = getMajorityLabel(table);
-    if ((double)majority.second / table.data.size() > 0.8) {
-        #pragma omp critical
-        {
-            tree[nodeIndex].isLeaf = true;
-            tree[nodeIndex].label = majority.first;
-        }
-        return;
-    }
+			pair<string, int> majority = getMajorityLabel(table);
+			if((double)majority.second/table.data.size() > 0.8) {
+				tree[nodeIndex].isLeaf = true;
+				tree[nodeIndex].label = majority.first;
+				return;
+			}
 
-    // Parallelize the loop for creating subnodes
-    #pragma omp parallel for shared(tree)
-    for (int i = 0; i < initialTable.attrValueList[selectedAttrIndex].size(); i++) {
-        string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
+			for(int i=0;i< initialTable.attrValueList[selectedAttrIndex].size(); i++) {
+				string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
 
-        Table nextTable;
-        vector<int> candi = attrValueMap[attrValue];
-        for (int i = 0; i < candi.size(); i++) {
-            nextTable.data.push_back(table.data[candi[i]]);
-        }
+				Table nextTable;
+				vector<int> candi = attrValueMap[attrValue];
+				for(int i=0;i<candi.size(); i++) {
+					nextTable.data.push_back(table.data[candi[i]]);
+				}
 
-        Node nextNode;
-        nextNode.attrValue = attrValue;
-        nextNode.treeIndex = (int)tree.size();
-        
-        // Add new node to the tree
-        #pragma omp critical
-        {
-            tree[nodeIndex].children.push_back(nextNode.treeIndex);
-            tree.push_back(nextNode);
-        }
+				Node nextNode;
+				nextNode.attrValue = attrValue;
+				nextNode.treeIndex = (int)tree.size();
+				tree[nodeIndex].children.push_back(nextNode.treeIndex);
+				tree.push_back(nextNode);
 
-        // for empty table
-        if (nextTable.data.size() == 0) {
-            #pragma omp critical
-            {
-                nextNode.isLeaf = true;
-                nextNode.label = getMajorityLabel(table).first;
-                tree[nextNode.treeIndex] = nextNode;
-            }
-        } else {
-            run(nextTable, nextNode.treeIndex);
-        }
-    }
-}
-
+				// for empty table
+				if(nextTable.data.size()==0) {
+					nextNode.isLeaf = true;
+					nextNode.label = getMajorityLabel(table).first;
+					tree[nextNode.treeIndex] = nextNode;
+				} else {
+					run(nextTable, nextNode.treeIndex);
+				}
+			}
+		}
 
 		double getEstimatedError(double f, int N) {
 			double z = 0.69;
@@ -261,6 +264,7 @@ void run(Table table, int nodeIndex) {
 			int itemCount = (int)table.data.size();
 
 			map<string, vector<int> > attrValueMap;
+			
 			for(int i=0;i<table.data.size();i++) {
 				attrValueMap[table.data[i][attrIndex]].push_back(i);
 			}
@@ -295,11 +299,6 @@ void run(Table table, int nodeIndex) {
 				printTree(childIndex, branch + attributeName + " = " + attributeValue + ", ");
 			}
 		}
-
-		string predict(vector<string> attributes) {
-    		return guess(attributes);
-		}
-
 };
 
 
@@ -322,6 +321,8 @@ class InputReader {
 			while(!getline(fin, str).eof()){
 				vector<string> row;
 				int pre = 0;
+
+				#pragma omp parallel for schedule (dynamic, 100)
 				for(int i=0;i<str.size();i++){
 					if(str[i] == '\t') {
 						string col = str.substr(pre, i-pre);
@@ -360,6 +361,8 @@ class OutputPrinter {
 
 		string joinByTab(vector<string> row) {
 			string ret = "";
+
+			#pragma omp parallel for schedule (dynamic, 100)
 			for(int i=0; i< row.size(); i++) {
 				ret += row[i];
 				if(i != row.size() -1) {
@@ -380,9 +383,11 @@ int main(int argc, const char * argv[]) {
 		return 0;
 	}
 
+	omp_set_num_threads(8);
+
 	string trainFileName = argv[1];
-	InputReader trainInputReader(trainFileName); // Lê o arquivo train.txt que contém a 
-	DecisionTree decisionTree(trainInputReader.getTable()); // 
+	InputReader trainInputReader(trainFileName);
+	DecisionTree decisionTree(trainInputReader.getTable());
 
 	string testFileName = argv[2];
 	InputReader testInputReader(testFileName);
@@ -391,16 +396,11 @@ int main(int argc, const char * argv[]) {
 	string resultFileName = argv[3];
 	OutputPrinter outputPrinter(resultFileName);
 	outputPrinter.addLine(outputPrinter.joinByTab(test.attrName));
-	for (int i = 0; i < test.data.size(); i++) {
+	for(int i=0;i < test.data.size(); i++) {
 		vector<string> result = test.data[i];
-		string prediction = decisionTree.predict(test.data[i]);
-		result.push_back(prediction);
+		result.push_back(decisionTree.guess(test.data[i]));
 		outputPrinter.addLine(outputPrinter.joinByTab(result));
-		
-		// Print the prediction to console (optional)
-		cout << "Prediction for row " << i + 1 << ": " << prediction << endl;
 	}
-
 
 	/* for answer check */
 	/*
