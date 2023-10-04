@@ -6,15 +6,17 @@
  * 2023 - 2o. Semestre
  * Código da Árvore de Decisão disponível em: https://github.com/bowbowbow/DecisionTree
 
- 1) Tempo de Execução Sequencial: 11.056s
- 2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 10.299s
+ 1) Tempo de Execução Sequencial: 15.890s
+ 2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 15.681s
 
- Ganho de 2 para 1 (Speedup): 1,073
+ Ganho de 2 para 1 (Speedup): 1,013
 
- 3) Tempo de Execução Paralela com 1 thread: 10.829s
- 4) Tempo de Execução Paralela com 2 threads: 11.428s
- 5) Tempo de Execução Paralela com 4 threads: 12.375s
- 6) Tempo de Execução Paralela com 8 threads: 20.703s
+ 3) Tempo de Execução Paralela com 1 thread: 14.732s
+ 	Speedup de 3 para 1: 1.078s
+
+ 4) Tempo de Execução Paralela com 2 threads: 16.034s
+ 5) Tempo de Execução Paralela com 4 threads: 17.522s
+ 6) Tempo de Execução Paralela com 8 threads: 15.262s
 
 */
 
@@ -35,6 +37,7 @@ class Table {
 		vector<vector<string> > attrValueList;
 		void extractAttrValue() {
 			attrValueList.resize(attrName.size());
+
 			for(int j=0; j<attrName.size(); j++) {
 				map<string, int> value;
 				for(int i=0; i<data.size(); i++) {
@@ -137,6 +140,8 @@ class DecisionTree {
 
 				Table nextTable;
 				vector<int> candi = attrValueMap[attrValue];
+
+				#pragma 
 				for(int i=0;i<candi.size(); i++) {
 					nextTable.data.push_back(table.data[candi[i]]);
 				}
@@ -322,7 +327,6 @@ class InputReader {
 				vector<string> row;
 				int pre = 0;
 
-				#pragma omp parallel for schedule (dynamic, 100)
 				for(int i=0;i<str.size();i++){
 					if(str[i] == '\t') {
 						string col = str.substr(pre, i-pre);
@@ -362,7 +366,6 @@ class OutputPrinter {
 		string joinByTab(vector<string> row) {
 			string ret = "";
 
-			#pragma omp parallel for schedule (dynamic, 100)
 			for(int i=0; i< row.size(); i++) {
 				ret += row[i];
 				if(i != row.size() -1) {
@@ -396,6 +399,12 @@ int main(int argc, const char * argv[]) {
 	string resultFileName = argv[3];
 	OutputPrinter outputPrinter(resultFileName);
 	outputPrinter.addLine(outputPrinter.joinByTab(test.attrName));
+
+	/**
+	 * @brief
+	 * 
+	*/
+	#pragma omp parallel for
 	for(int i=0;i < test.data.size(); i++) {
 		vector<string> result = test.data[i];
 		result.push_back(decisionTree.guess(test.data[i]));
