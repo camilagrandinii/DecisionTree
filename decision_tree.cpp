@@ -163,6 +163,13 @@ class DecisionTree {
 				}
 			}
 			else{
+				/**
+				 * O 'For' a seguir faz uma iteração para cada unidade de atributo na lista da tabela
+				 * Ele atribui valores a 'nos' baseado em valores encontrados na tabela
+				 * Devido a natureza independente da DT para com as folhas e a carga de atributos, paralelização desse trecho é possível.
+				 * O 'IF' statement acima apresenta uma situação quando há poucos atributos e possui melhoria em sequencial
+				 * Observou-se que um '#pragma omp parallel for schedule(dynamic, 100)' obteve melhores resultados
+				 */
 				#pragma omp parallel for schedule (dynamic, 100)
 				for(int i=0;i< initialTable.attrValueList[selectedAttrIndex].size(); i++) {
 					string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
@@ -335,6 +342,13 @@ class DecisionTree {
 				}
 			}
 			else{
+				/**
+				 * O 'For' a seguir faz uma iteração para cada no folha da arvore
+				 * Ele atribui valores de cada no e chama o metodo recursivo para imprimir esses valores
+				 * Devido a natureza independente da DT para com as folhas, paralelização desse trecho é possível.
+				 * O 'IF' statement acima apresenta uma situação quando há poucos 'nos' e possui melhoria em sequencial
+				 * Observou-se que um '#pragma omp parallel for schedule(dynamic, 100)' obteve melhores resultados
+				 */
 				#pragma omp parallel for schedule (dynamic, 100)
 				for(int i = 0; i < tree[nodeIndex].children.size(); i++) {
 					int childIndex = tree[nodeIndex].children[i];
@@ -443,9 +457,12 @@ int main(int argc, const char * argv[]) {
 	outputPrinter.addLine(outputPrinter.joinByTab(test.attrName));
 
 	/**
-	 * @brief
-	 * 
-	*/
+	 * O 'For' a seguir faz uma iteração para cada linha da tabela (Row)
+	 * Invoca-se a arvore de decisão (já treinada) para analisar a linha e predizer um resultado
+	 * Por fim ele formata o resultado para impressão futura
+	 * Devido a natureza independente dos testes, paralelização desse trecho é possível.
+	 * Observou-se que um '#pragma omp parallel for' obteve melhores resultados
+	 */
 	#pragma omp parallel for
 	for(int i=0;i < test.data.size(); i++) {
 		vector<string> result = test.data[i];
