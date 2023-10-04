@@ -1,5 +1,5 @@
 /**
- * Paralelização de Decision Tree Paralelo
+ * Paralelização do código de Decision Tree
  * C++
  * Computação Paralela
  * @authors - Camila Lacerda Grandini, Joana Moreira Woldaynsky, Lucas de Paula e Guilherme Vedovelo
