@@ -1,7 +1,6 @@
 Parallel Decision Tree Algorithm
 =========================
 
-
 - 📖 This repository was created to make the Decicision Tree Algorithm parallel
   - Language: C++
   - Parallel Library: Open MP
@@ -47,19 +46,6 @@ This algorithm is used for automatic decision tree generation.
 - There are no sample left
 
 **Attribute Selection Measure :** Information GainRatio
-
-![](https://latex.codecogs.com/gif.latex?$$GainRatio(A)&space;=&space;\frac&space;{Gain(A)}{SplitInfo(A)}&space;$$)
-
-![](https://latex.codecogs.com/gif.latex?$$SplitInfo_{A}(D)&space;=&space;-&space;\sum&space;_{&space;j=1&space;}^{&space;v&space;}&space;\frac&space;{&space;\left|&space;{&space;D&space;}_{&space;j&space;}&space;\right|&space;}{&space;\left|&space;D&space;\right|&space;}&space;log_{2}(\frac&space;{&space;\left|&space;{&space;D&space;}_{&space;j&space;}&space;\right|&space;}{&space;\left|&space;D&space;\right|&space;})$$)
-
-![](https://latex.codecogs.com/gif.latex?$$Gain(A)&space;=&space;info(D)&space;-&space;info_{A}(D)$$)
-
-![](https://latex.codecogs.com/gif.latex?$$info_{A}(D)&space;=&space;\sum&space;_{&space;j=1&space;}^{&space;v&space;}&space;\frac&space;{&space;\left|&space;{&space;D&space;}_{&space;j&space;}&space;\right|&space;}{&space;\left|&space;D&space;\right|&space;}&space;info({&space;D&space;}_{&space;j&space;})$$)
-
-![](https://latex.codecogs.com/gif.latex?$$info(D)&space;=&space;-&space;\sum&space;_{&space;i=1&space;}^{&space;m&space;}{&space;{&space;p&space;}_{&space;i&space;}{&space;log&space;}_{&space;2&space;}({&space;p&space;}_{&space;i&space;})&space;}&space;$$)
-
-![](https://latex.codecogs.com/gif.latex?$$p_{i}&space;=&space;\frac&space;{&space;\left|&space;{&space;C&space;}_{&space;i,&space;D&space;}&space;\right|&space;}{&space;\left|&space;D&space;\right|&space;}&space;$$)
-
 
 Any other specification of the implementation and testing
 ============
