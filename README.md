@@ -1,4 +1,5 @@
-### Parallel Decision Tree Algorithm
+Parallel Decision Tree Algorithm
+=========================
 
 
 - 📖 This repository was created to make the Decicision Tree Algorithm parallel
