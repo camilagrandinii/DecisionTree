@@ -6,17 +6,17 @@
  * 2023 - 2o. Semestre
  * Código da Árvore de Decisão disponível em: https://github.com/bowbowbow/DecisionTree
 
- 1) Tempo de Execução Sequencial: 15.890s
- 2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 15.681s
+ 1) Tempo de Execução Sequencial: 15.607s
+ 2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 13.268s
 
- Ganho de 2 para 1 (Speedup): 1,013
+ Ganho de 2 para 1 (Speedup): 1,176
 
- 3) Tempo de Execução Paralela com 1 thread: 14.732s
- 	Speedup de 3 para 1: 1.078s
+ 3) Tempo de Execução Paralela com 1 thread: 11.437s
+ 	Speedup de 3 para 1: 1,364
 
- 4) Tempo de Execução Paralela com 2 threads: 16.034s
- 5) Tempo de Execução Paralela com 4 threads: 17.522s
- 6) Tempo de Execução Paralela com 8 threads: 15.262s
+ 4) Tempo de Execução Paralela com 2 threads: 11.795s
+ 5) Tempo de Execução Paralela com 4 threads: 12.179s
+ 6) Tempo de Execução Paralela com 8 threads: 11.331s
 
 */
 
@@ -135,30 +135,59 @@ class DecisionTree {
 				return;
 			}
 
-			for(int i=0;i< initialTable.attrValueList[selectedAttrIndex].size(); i++) {
-				string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
+			if(selectedAttrIndex<30){
+					for(int i=0;i< initialTable.attrValueList[selectedAttrIndex].size(); i++) {
+					string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
 
-				Table nextTable;
-				vector<int> candi = attrValueMap[attrValue];
+					Table nextTable;
+					vector<int> candi = attrValueMap[attrValue];
 
-				#pragma 
-				for(int i=0;i<candi.size(); i++) {
-					nextTable.data.push_back(table.data[candi[i]]);
+					for(int i=0;i<candi.size(); i++) {
+						nextTable.data.push_back(table.data[candi[i]]);
+					}
+
+					Node nextNode;
+					nextNode.attrValue = attrValue;
+					nextNode.treeIndex = (int)tree.size();
+					tree[nodeIndex].children.push_back(nextNode.treeIndex);
+					tree.push_back(nextNode);
+
+					// for empty table
+					if(nextTable.data.size()==0) {
+						nextNode.isLeaf = true;
+						nextNode.label = getMajorityLabel(table).first;
+						tree[nextNode.treeIndex] = nextNode;
+					} else {
+						run(nextTable, nextNode.treeIndex);
+					}
 				}
+			}
+			else{
+				#pragma omp parallel for schedule (dynamic, 100)
+				for(int i=0;i< initialTable.attrValueList[selectedAttrIndex].size(); i++) {
+					string attrValue = initialTable.attrValueList[selectedAttrIndex][i];
 
-				Node nextNode;
-				nextNode.attrValue = attrValue;
-				nextNode.treeIndex = (int)tree.size();
-				tree[nodeIndex].children.push_back(nextNode.treeIndex);
-				tree.push_back(nextNode);
+					Table nextTable;
+					vector<int> candi = attrValueMap[attrValue];
 
-				// for empty table
-				if(nextTable.data.size()==0) {
-					nextNode.isLeaf = true;
-					nextNode.label = getMajorityLabel(table).first;
-					tree[nextNode.treeIndex] = nextNode;
-				} else {
-					run(nextTable, nextNode.treeIndex);
+					for(int i=0;i<candi.size(); i++) {
+						nextTable.data.push_back(table.data[candi[i]]);
+					}
+
+					Node nextNode;
+					nextNode.attrValue = attrValue;
+					nextNode.treeIndex = (int)tree.size();
+					tree[nodeIndex].children.push_back(nextNode.treeIndex);
+					tree.push_back(nextNode);
+
+					// for empty table
+					if(nextTable.data.size()==0) {
+						nextNode.isLeaf = true;
+						nextNode.label = getMajorityLabel(table).first;
+						tree[nextNode.treeIndex] = nextNode;
+					} else {
+						run(nextTable, nextNode.treeIndex);
+					}
 				}
 			}
 		}
@@ -295,13 +324,26 @@ class DecisionTree {
 			if (tree[nodeIndex].isLeaf == true)
 				cout << branch << "Label: " << tree[nodeIndex].label << "\n";
 
-			for(int i = 0; i < tree[nodeIndex].children.size(); i++) {
-				int childIndex = tree[nodeIndex].children[i];
+			if(nodeIndex < 30){
+				for(int i = 0; i < tree[nodeIndex].children.size(); i++) {
+					int childIndex = tree[nodeIndex].children[i];
 
-				string attributeName = initialTable.attrName[tree[nodeIndex].criteriaAttrIndex];
-				string attributeValue = tree[childIndex].attrValue;
+					string attributeName = initialTable.attrName[tree[nodeIndex].criteriaAttrIndex];
+					string attributeValue = tree[childIndex].attrValue;
 
-				printTree(childIndex, branch + attributeName + " = " + attributeValue + ", ");
+					printTree(childIndex, branch + attributeName + " = " + attributeValue + ", ");
+				}
+			}
+			else{
+				#pragma omp parallel for schedule (dynamic, 100)
+				for(int i = 0; i < tree[nodeIndex].children.size(); i++) {
+					int childIndex = tree[nodeIndex].children[i];
+
+					string attributeName = initialTable.attrName[tree[nodeIndex].criteriaAttrIndex];
+					string attributeValue = tree[childIndex].attrValue;
+
+					printTree(childIndex, branch + attributeName + " = " + attributeValue + ", ");
+				}
 			}
 		}
 };
