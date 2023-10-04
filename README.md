@@ -46,7 +46,7 @@ This algorithm is used for automatic decision tree generation.
 - There are no remaining attributes for further partitioning - majority voting is employed for classifying the leaf
 - There are no sample left
 
-**Attribute Selection Measure : Information GainRatio**
+**Attribute Selection Measure :** Information GainRatio
 
 ![](https://latex.codecogs.com/gif.latex?$$GainRatio(A)&space;=&space;\frac&space;{Gain(A)}{SplitInfo(A)}&space;$$)
 
