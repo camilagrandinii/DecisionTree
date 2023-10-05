@@ -5,6 +5,7 @@
  * @authors - Camila Lacerda Grandini, Joana Moreira Woldaynsky, Lucas de Paula e Guilherme Vedovelo
  * 2023 - 2o. Semestre
  * Código da Árvore de Decisão disponível em: https://github.com/bowbowbow/DecisionTree
+ * Base dados: https://www.kaggle.com/datasets/shreydan/stanford-dogs-csv
 
  1) Tempo de Execução Sequencial: 15.607s
  2) Tempo de Execução Paralela com o número padrão de núcleos do computador: 13.268s
